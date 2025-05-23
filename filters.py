@@ -4,6 +4,9 @@ import seaborn as sns
 import pandas as pd
 from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.impute import KNNImputer
 
 
 def mm_outlier_remover(df:pd.DataFrame, ref_col:str, multiplyer:float,roll:int):
