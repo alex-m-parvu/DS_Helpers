@@ -1,5 +1,5 @@
 from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import make_column_selector, make_column_transformer
@@ -41,6 +41,13 @@ pipeline = Pipeline(steps =
                     [
                     ('preproces', preprocessing)
                     ,('estimator', RandomForestRegressor(n_estimators=1000, n_jobs=-1))
+                    ]
+                   )
+
+pipeline_Classifier = Pipeline(steps = 
+                    [
+                    ('preproces', preprocessing)
+                    ,('estimator', RandomForestClassifier(n_estimators=1000, n_jobs=-1))
                     ]
                    )
 
