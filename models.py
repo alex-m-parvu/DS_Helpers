@@ -31,7 +31,7 @@ preprocessing = make_column_transformer(
 
 
 simple_preprocessing = make_column_transformer(
-    (KNNImputer(), make_column_selector(dtype_include=np.number))
+    (SimpleImputer(strategy='most_frequent'), make_column_selector(dtype_include=np.number))
     , (SimpleImputer(strategy='most_frequent'), make_column_selector(dtype_include=object))
     , n_jobs=-1
 )
