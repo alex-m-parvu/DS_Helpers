@@ -146,42 +146,6 @@ class EmbeddingCreator:
         else:
             self.matrix = np.arange(0, (len(unique_ids)+1) * self.embedding_dims).reshape(len(unique_ids)+1, self.embedding_dims)  # add an extra row for the 'other' category
 
-
-def find_embed_object_cols(df:pd.DataFrame, embedding_dims=4):
-
-    df = df.copy()
-
-    object_columns = df.select_dtypes(include='object').columns
-
-    shape_before = df.shape
-
-
-    embedings ={}
-
-    for col in object_columns:
-
-    # col = object_columns[0]
-
-        print(col)
-        embeding = EmbeddingCreator(embedding_dims=embedding_dims, prefix=col+'_')
-        embeding_df = embeding.fit_transform(ids=df[col])
-        embeding_df.index = df.index
-        df = pd.concat(objs=(df, embeding_df), axis=1)
-
-        df = df.drop(labels=col, axis=1)
-
-
-        embedings[col] = embeding
-
-    shape_after = df.shape
-
-
-
-    result = dict(shape_before=shape_before, shape_after=shape_after, embedings=embedings, df=df  )
-
-    return result
-
-
     def create_embedding(self, ids):
         """
         Create an embedding matrix for a list of IDs.
@@ -233,6 +197,43 @@ def find_embed_object_cols(df:pd.DataFrame, embedding_dims=4):
         """
         self.fit(ids)  # fit the embedding creator to the given ids
         return self.create_embedding(ids)  # transform the ids into embeddings
+
+
+
+def find_embed_object_cols(df:pd.DataFrame, embedding_dims=4):
+
+    df = df.copy()
+
+    object_columns = df.select_dtypes(include='object').columns
+
+    shape_before = df.shape
+
+
+    embedings ={}
+
+    for col in object_columns:
+
+    # col = object_columns[0]
+
+        print(col)
+        embeding = EmbeddingCreator(embedding_dims=embedding_dims, prefix=col+'_')
+        embeding_df = embeding.fit_transform(ids=df[col])
+        embeding_df.index = df.index
+        df = pd.concat(objs=(df, embeding_df), axis=1)
+
+        df = df.drop(labels=col, axis=1)
+
+
+        embedings[col] = embeding
+
+    shape_after = df.shape
+
+
+
+    result = dict(shape_before=shape_before, shape_after=shape_after, embedings=embedings, df=df  )
+
+    return result
+
 
 
 # Create a function for creating embedings 
