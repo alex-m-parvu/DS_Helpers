@@ -7,6 +7,7 @@ from sklearn.metrics import silhouette_score
 import holidays
 
 
+
 def other_generator(series: pd.Series, other_threshold=5):
     series = pd.Series(series)
 
