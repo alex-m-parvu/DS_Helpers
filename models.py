@@ -6,6 +6,14 @@ from sklearn.compose import make_column_selector, make_column_transformer
 import numpy as np
 import pandas as pd
 from .metrics import NRMSE
+from sklearn.preprocessing import FunctionTransformer
+
+
+def log_transform(x):
+    print(x)
+    return np.log(x + 1)
+
+log_scaler = FunctionTransformer(log_transform)
 
 
 num_pipeline = Pipeline(steps=
