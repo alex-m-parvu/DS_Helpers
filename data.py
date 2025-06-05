@@ -7,6 +7,16 @@ from sklearn.metrics import silhouette_score
 import holidays
 
 
+def other_generator(series: pd.Series, other_threshold=5):
+    series = pd.Series(series)
+
+    value_counts = series.value_counts()
+
+    filter = value_counts[ value_counts>other_threshold ]
+
+    return series.apply( lambda x:x if x in filter.index else "other" )
+
+
 def get_days_to_nearest_holiday(date_input):
     """
     Calculate the number of days to the nearest public or religious holiday in Romania.
