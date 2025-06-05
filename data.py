@@ -29,14 +29,18 @@ def other_generator_columns(df:pd.DataFrame, other_threshold=20):
     return new_df
 
 
-def get_days_to_nearest_holiday(date_input):
-    """
-    Calculate the number of days to the nearest public or religious holiday in Romania.
 
-    This function takes a date input, which can be a datetime object, a pandas Timestamp, or a DatetimeIndex, and returns the number of days to the nearest holiday in Romania. The holidays are determined using the holidays library.
+def get_days_to_nearest_holiday(date_input, country_code='RO'):
+    """
+    Calculate the number of days to the nearest public or religious holiday in a given country.
+
+    This function takes a date input and an optional country code (default is Romania),
+    and returns the number of days to the nearest holiday in that country.
+    The holidays are determined using the holidays library.
 
     Parameters:
         date_input (datetime, pd.Timestamp, or pd.DatetimeIndex): The date for which to calculate the distance to the nearest holiday.
+        country_code (str): A two-letter code specifying the country. See `holidays` library documentation for available codes. Defaults to 'RO' (Romania).
 
     Returns:
         int: The number of days to the nearest holiday.
@@ -46,29 +50,30 @@ def get_days_to_nearest_holiday(date_input):
         >>> get_days_to_nearest_holiday(datetime(2024, 1, 1))
         0
 
-    >>> import pandas as pd
-    >>> get_days_to_nearest_holiday(pd.Timestamp('2024-01-02'))
-    1
+        >>> import pandas as pd
+        >>> get_days_to_nearest_holiday(pd.Timestamp('2024-01-02'))
+        1
 
     Note:
         - The function assumes the input date is in the Gregorian calendar.
-        - The holidays are specific to Romania and are fetched using the holidays.RO() method.
+        - The holidays are specific to the given country and are fetched using the `holidays` library.
     """
-    
-    
     # Convert input to datetime if needed
     if isinstance(date_input, pd.DatetimeIndex):
         date_input = date_input[0]
-    if isinstance(date_input, pd.Timestamp):
+    elif isinstance(date_input, pd.Timestamp):
         date_input = date_input.to_pydatetime()
 
-    # Initialize holidays for Romania (RO)
-    RO_holidays = holidays.RO()
+    # Initialize holidays for the given country
+    try:
+        country_holidays = holidays.CountryHoliday(country_code)
+    except KeyError:
+        raise ValueError(f"Unsupported country code: {country_code}")
 
     # Get holidays within a reasonable range around input date
     year = date_input.year
     holiday_dates = [
-        dt for dt in RO_holidays[f'{year-1}-12-01':f'{year+1}-01-31']
+        dt for dt in country_holidays[f'{year-1}-12-01':f'{year+1}-01-31']
     ]
 
     # Calculate distances to all holidays
@@ -78,7 +83,8 @@ def get_days_to_nearest_holiday(date_input):
     ]
 
     # Return minimum distance
-    return min(distances)
+    return min(distances) if holiday_dates else None
+
 
 
 def find_optimal_clusters(df, algorithm=KMeans(), max_clusters=10):
