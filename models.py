@@ -10,7 +10,7 @@ from sklearn.preprocessing import FunctionTransformer
 
 
 def log_transform(x):
-    print(x)
+    # print(x)
     return np.log(x + 1)
 
 log_scaler = FunctionTransformer(log_transform)
