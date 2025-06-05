@@ -17,6 +17,18 @@ def other_generator(series: pd.Series, other_threshold=5):
     return series.apply( lambda x:x if x in filter.index else "other" )
 
 
+def other_generator_columns(df:pd.DataFrame, other_threshold=20):
+
+    new_df = df.copy()
+
+    object_column = new_df.select_dtypes(include='object').columns
+
+    for col in object_column:
+        new_df[col] = other_generator(series=new_df[col], other_threshold=other_threshold)
+
+    return new_df
+
+
 def get_days_to_nearest_holiday(date_input):
     """
     Calculate the number of days to the nearest public or religious holiday in Romania.
