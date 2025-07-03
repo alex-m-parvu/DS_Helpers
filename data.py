@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 from sklearn.metrics import silhouette_score
 import holidays
+from sklearn.base import BaseEstimator, TransformerMixin
 
 
 
@@ -117,6 +118,81 @@ def find_optimal_clusters(df, algorithm=KMeans(), max_clusters=10):
             optimal_n_clusters = n_clusters
 
     return optimal_n_clusters
+
+class EmbeddingCreator_sk(BaseEstimator, TransformerMixin):
+    """
+    Scikit-learn-compatible transformer for embedding categorical IDs.
+
+    A scikit-learn-compatible transformer that converts categorical IDs into dense embedding vectors.
+
+    This transformer learns an embedding matrix during `fit` and maps each category (ID) to a fixed-size
+    vector. It can optionally use random or sequential embeddings and handles unknown categories during
+    `transform` by assigning them to an "other" embedding.
+
+    Parameters
+    ----------
+    embedding_dims : int, default=8
+        The dimensionality of the embedding vectors.
+
+    random : bool, default=False
+        If True, the embeddings are initialized randomly using a standard normal distribution.
+        If False, embeddings are initialized using a sequence of increasing numbers.
+
+    prefix : str or None, default=None
+        Optional prefix for the embedding column names in the output DataFrame.
+        If None, columns will be named 'V_0', 'V_1', ..., otherwise '{prefix}V_0', '{prefix}V_1', ...
+
+    Attributes
+    ----------
+    id_map : dict
+        A mapping from category ID to row index in the embedding matrix. Includes a special 'other' key
+        for unknown categories.
+
+    matrix : ndarray of shape (n_categories + 1, embedding_dims)
+        The embedding matrix. Each row is a vector representation for a category, with the last row
+        reserved for the 'other' category.
+
+    Examples
+    --------
+    >>> from sklearn.pipeline import Pipeline
+    >>> emb = EmbeddingCreator(embedding_dims=4, random=True, prefix='user_')
+    >>> X = ['user1', 'user2', 'user3']
+    >>> emb.fit_transform(X)
+         user_V_0  user_V_1  user_V_2  user_V_3
+    0   ...       ...       ...       ...
+    1   ...       ...       ...       ...
+    2   ...       ...       ...       ...
+    """
+    def __init__(self, embedding_dims=8, random=False, prefix=None):
+        self.embedding_dims = embedding_dims
+        self.random = random
+        self.prefix = prefix
+        self.id_map = {}
+        self.matrix = None
+
+    def fit(self, X, y=None):
+        unique_ids = sorted(set(X))  # assumes X is 1D array-like
+        self.id_map = {id_: i for i, id_ in enumerate(unique_ids)}
+        self.id_map['other'] = len(self.id_map)
+
+        n_ids = len(self.id_map)
+        if self.random:
+            self.matrix = np.random.normal(size=(n_ids, self.embedding_dims))
+        else:
+            self.matrix = np.arange(0, n_ids * self.embedding_dims).reshape(n_ids, self.embedding_dims)
+
+        return self
+
+    def transform(self, X):
+        if self.matrix is None:
+            raise ValueError("Call fit before transform.")
+
+        ids = [x if x in self.id_map else 'other' for x in X]
+        indices = [self.id_map[id_] for id_ in ids]
+
+        columns = [f'{self.prefix}V_{i}' if self.prefix else f'V_{i}' for i in range(self.embedding_dims)]
+        return pd.DataFrame(self.matrix[indices], columns=columns)
+
 
 class EmbeddingCreator:
     """
@@ -234,8 +310,6 @@ def find_embed_object_cols(df:pd.DataFrame, embedding_dims=4):
         embedings[col] = embeding
 
     shape_after = df.shape
-
-
 
     result = dict(shape_before=shape_before, shape_after=shape_after, embedings=embedings, df=df  )
 
